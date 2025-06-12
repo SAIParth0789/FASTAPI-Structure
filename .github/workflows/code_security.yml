@@ -19,17 +19,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # This step runs the Snyk Code scan using the generic Snyk CLI action.
-      - name: Run Snyk Code
-        uses: snyk/actions/cli@master
+      # This step installs the Snyk CLI into the runner environment.
+      - name: Set up Snyk CLI
+        uses: snyk/actions/setup@master
+
+      # This step runs the Snyk Code scan using the installed CLI.
+      - name: Run Snyk Code analysis
+        run: snyk code test
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
           # Your Snyk token is required to authenticate with the Snyk API.
           # Store your token as a secret in your GitHub repository settings.
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # The 'code test' command specifically runs the SAST scan.
-          command: 'code test'
 
   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
   # vulnerabilities in your open-source dependencies.
