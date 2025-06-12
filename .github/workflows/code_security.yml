@@ -121,13 +121,13 @@ jobs:
         # Gives the application 30 seconds to initialize. Adjust this time if needed.
         run: sleep 30
 
-      - name: OWASP ZAP Full Scan
-        # This is the correct action name and a valid version.
-        uses: owasp/zap-action-full-scan@v0.5.0
+      - name: OWASP ZAP API Scan
+        # This is the correct, currently maintained action for API scanning.
+        uses: owasp/zap-api-scan@v0.4.0
         with:
-          # The target URL for the ZAP scan, now pointing to your protected docs.
-          target: 'http://localhost:8000/api/v1/docs'
-          # Use cmd_options to add an Authorization header for HTTP Basic Auth.
+          # The machine-readable OpenAPI/Swagger definition of your API.
+          api-url: 'http://localhost:8000/openapi.json'
+          # Use extra_options to add the Authorization header for HTTP Basic Auth.
+          # This allows ZAP to access any protected endpoints defined in your API spec.
           # The value 'YWRtaW46YWRtaW4=' is the Base64 encoding of 'admin:admin'.
-          # For real secrets, you would use a GitHub secret here.
-          cmd_options: '-z "-config replacer.full_list(0).description=auth -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Basic YWRtaW46YWRtaW4="'
+          extra_options: '-z "-config replacer.full_list(0).description=auth -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=Basic YWRtaW46YWRtaW4="'
