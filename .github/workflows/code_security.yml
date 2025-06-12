@@ -70,12 +70,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # This step builds the Docker image.
+      # This step builds the Docker image from the 'app' directory.
       - name: Build Docker image
-        run: docker build . --tag my-fastapi-app
+        run: docker build ./app --file ./app/Dockerfile --tag my-fastapi-app
 
       # This step runs the Snyk Container scan.
-      - name: Run Snyk Container
+      - name: Run Snyk Container scan
         uses: snyk/actions/docker@master
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
@@ -83,8 +83,8 @@ jobs:
         with:
           # The name of the image to test.
           image: my-fastapi-app
-          # Arguments to pass to the Snyk CLI.
-          args: --file=Dockerfile
+          # Arguments to pass to the Snyk CLI, pointing to the Dockerfile.
+          args: --file=./dockerfiles/Dockerfile
 
   # This job runs Snyk Infrastructure as Code (IaC) to find and fix
   # misconfigurations in your IaC files (e.g., Terraform, Kubernetes).
