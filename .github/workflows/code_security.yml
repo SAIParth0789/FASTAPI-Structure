@@ -19,17 +19,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # This step runs the Snyk Code scan.
+      # This step runs the Snyk Code scan using the generic Snyk CLI action.
       - name: Run Snyk Code
-        uses: snyk/actions/python-3.11@master
+        uses: snyk/actions/cli@master
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
           # Your Snyk token is required to authenticate with the Snyk API.
           # Store your token as a secret in your GitHub repository settings.
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          # The 'test' command scans for vulnerabilities.
-          command: 'test'
+          # The 'code test' command specifically runs the SAST scan.
+          command: 'code test'
 
   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
   # vulnerabilities in your open-source dependencies.
@@ -50,15 +50,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # This step runs the Snyk Open Source scan.
+      # This step runs the Snyk Open Source scan using the dedicated Python action.
       - name: Run Snyk Open Source
-        uses: snyk/actions/python-3.11@master
+        uses: snyk/actions/python@master
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          # The 'test' command scans for vulnerabilities.
-          command: 'test'
           # The 'monitor' command takes a snapshot of your dependencies and sends it to Snyk.
           # This allows Snyk to alert you if new vulnerabilities are found in the future.
           args: --all-projects
