@@ -122,7 +122,8 @@ jobs:
         run: sleep 30
 
       - name: OWASP ZAP Full Scan
-        uses: owasp/zap-full-scan-action@v0.8.0
+        # This is the correct action name and a valid version.
+        uses: owasp/zap-action-full-scan@v0.5.0
         with:
           # The target URL for the ZAP scan, now pointing to your protected docs.
           target: 'http://localhost:8000/api/v1/docs'
