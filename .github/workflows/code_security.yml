@@ -58,11 +58,19 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          # The 'test' command provides immediate feedback in the CI log.
+          command: test
+          args: --all-projects --sarif-file-output=snyk-open-source.sarif
+      
+      - name: Monitor project on Snyk
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          # The 'monitor' command populates the Snyk dashboard.
           command: monitor
-          # The 'monitor' command takes a snapshot of your dependencies and sends it to Snyk.
-          # This allows Snyk to alert you if new vulnerabilities are found in the future.
           args: --all-projects
-
+  
   # This job runs Snyk Container to find and fix vulnerabilities in your Docker image.
   snyk_container:
     runs-on: ubuntu-latest
