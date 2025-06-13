@@ -31,14 +31,6 @@ jobs:
           # Your Snyk token is required to authenticate with the Snyk API.
           # Store your token as a secret in your GitHub repository settings.
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Monitor project on Snyk (SATA)
-        uses: snyk/actions/setup@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # The 'monitor' command populates the Snyk dashboard.
-          command: monitor
-          args: --all-projects
 
   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
   # vulnerabilities in your open-source dependencies.
