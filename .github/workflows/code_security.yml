@@ -129,16 +129,15 @@ jobs:
   snyk_code:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Create reports directory
+      - name: Prepare reports directory
         run: mkdir -p reports
 
       - name: Install Snyk CLI
         uses: snyk/actions/setup@master
 
-      - name: Snyk Code (SAST)
+      - name: Run Snyk Code scan
         run: |
           snyk code test \
             --org=${{ secrets.SNYK_ORG }} \
