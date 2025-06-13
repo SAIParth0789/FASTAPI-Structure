@@ -111,3 +111,124 @@
 #         env:
 #           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+name: Snyk Security Scans
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  # must set this in your repo’s Secrets
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  # optional: if you have multiple Snyk orgs
+  SNYK_ORG:   ${{ secrets.SNYK_ORG }}
+
+jobs:
+  snyk_code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Snyk Code (SAST)
+        run: |
+          snyk code test \
+            --org=${{ env.SNYK_ORG }} \
+            --project-name="fastapi-app" \
+            --sarif-file-output=reports/snyk-code.sarif
+        continue-on-error: true
+
+      - name: Upload Snyk Code SARIF
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: reports/snyk-code.sarif
+
+  snyk_open_source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Snyk Open Source (SCA)
+        uses: snyk/actions/python@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_ORG:   ${{ env.SNYK_ORG }}
+        with:
+          command: test
+          args: >
+            --all-projects
+            --org=${{ env.SNYK_ORG }}
+            --project-name="fastapi-app"
+            --sarif-file-output=reports/snyk-oss.sarif
+
+      - name: Monitor on Snyk.io
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_ORG:   ${{ env.SNYK_ORG }}
+        with:
+          command: monitor
+          args: >
+            --all-projects
+            --org=${{ env.SNYK_ORG }}
+            --project-name="fastapi-app"
+
+  snyk_container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: docker build . --file ./dockerfiles/Dockerfile --tag fastapi-app:latest
+
+      - name: Snyk Container scan
+        uses: snyk/actions/docker@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_ORG:   ${{ env.SNYK_ORG }}
+        with:
+          image: fastapi-app:latest
+          args: >
+            --org=${{ env.SNYK_ORG }}
+            --project-name="fastapi-app"
+            --file=./dockerfiles/Dockerfile
+
+  snyk_iac:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Snyk IaC scan
+        uses: snyk/actions/iac@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_ORG:   ${{ env.SNYK_ORG }}
+        with:
+          # pass through any args you need:
+          args: >
+            test
+            --org=${{ env.SNYK_ORG }}
+            --project-name="fastapi-app"
+
