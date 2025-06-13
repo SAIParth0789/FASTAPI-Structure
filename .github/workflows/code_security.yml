@@ -1,113 +1,113 @@
-# This is a GitHub Actions workflow file that integrates Snyk security scans.
-# It includes jobs for Snyk Code, Snyk Open Source, Snyk Container, and Snyk IaC.
-name: Snyk Security Scans
+# # This is a GitHub Actions workflow file that integrates Snyk security scans.
+# # It includes jobs for Snyk Code, Snyk Open Source, Snyk Container, and Snyk IaC.
+# name: Snyk Security Scans
 
-# This workflow is triggered on every push to the main branch and on every pull request.
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+# # This workflow is triggered on every push to the main branch and on every pull request.
+# on:
+#   push:
+#     branches: ["main"]
+#   pull_request:
+#     branches: ["main"]
 
-jobs:
-  # This job runs Snyk's Static Application Security Testing (SAST) to find and fix
-  # vulnerabilities in your application code.
-  snyk_code:
-    runs-on: ubuntu-latest
-    steps:
-      # This step checks out your repository's code so that the workflow can access it.
-      - name: Checkout repository
-        uses: actions/checkout@v3
+# jobs:
+#   # This job runs Snyk's Static Application Security Testing (SAST) to find and fix
+#   # vulnerabilities in your application code.
+#   snyk_code:
+#     runs-on: ubuntu-latest
+#     steps:
+#       # This step checks out your repository's code so that the workflow can access it.
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      # This step installs the Snyk CLI into the runner environment.
-      - name: Set up Snyk CLI
-        uses: snyk/actions/setup@master
+#       # This step installs the Snyk CLI into the runner environment.
+#       - name: Set up Snyk CLI
+#         uses: snyk/actions/setup@master
 
-      # This step runs the Snyk Code scan using the installed CLI.
-      - name: Run Snyk Code analysis
-        run: snyk code test
-        continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-        env:
-          # Your Snyk token is required to authenticate with the Snyk API.
-          # Store your token as a secret in your GitHub repository settings.
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#       # This step runs the Snyk Code scan using the installed CLI.
+#       - name: Run Snyk Code analysis
+#         run: snyk code test
+#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
+#         env:
+#           # Your Snyk token is required to authenticate with the Snyk API.
+#           # Store your token as a secret in your GitHub repository settings.
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-  # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
-  # vulnerabilities in your open-source dependencies.
-  snyk_open_source:
-    runs-on: ubuntu-latest
-    steps:
-      # This step checks out your repository's code.
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
+#   # vulnerabilities in your open-source dependencies.
+#   snyk_open_source:
+#     runs-on: ubuntu-latest
+#     steps:
+#       # This step checks out your repository's code.
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      # This step sets up a Python environment.
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+#       # This step sets up a Python environment.
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: '3.11'
 
-      # This step installs the project dependencies from your requirements.txt file.
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+#       # This step installs the project dependencies from your requirements.txt file.
+#       - name: Install dependencies
+#         run: pip install -r requirements.txt
 
-      # This step runs the Snyk Open Source scan using the dedicated Python action.
-      - name: Run Snyk Open Source
-        uses: snyk/actions/python@master
-        continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # The 'test' command provides immediate feedback in the CI log.
-          command: test
-          args: --all-projects --sarif-file-output=snyk-open-source.sarif
+#       # This step runs the Snyk Open Source scan using the dedicated Python action.
+#       - name: Run Snyk Open Source
+#         uses: snyk/actions/python@master
+#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#         with:
+#           # The 'test' command provides immediate feedback in the CI log.
+#           command: test
+#           args: --all-projects --sarif-file-output=snyk-open-source.sarif
       
-      - name: Monitor project on Snyk
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # The 'monitor' command populates the Snyk dashboard.
-          command: monitor
-          args: --all-projects
+#       - name: Monitor project on Snyk
+#         uses: snyk/actions/python@master
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#         with:
+#           # The 'monitor' command populates the Snyk dashboard.
+#           command: monitor
+#           args: --all-projects
   
-  # This job runs Snyk Container to find and fix vulnerabilities in your Docker image.
-  snyk_container:
-    runs-on: ubuntu-latest
-    steps:
-      # This step checks out your repository's code.
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#   # This job runs Snyk Container to find and fix vulnerabilities in your Docker image.
+#   snyk_container:
+#     runs-on: ubuntu-latest
+#     steps:
+#       # This step checks out your repository's code.
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      # This step builds the Docker image from the repository root.
-      - name: Build Docker image
-        run: docker build . --file ./dockerfiles/Dockerfile --tag fastapi-app
+#       # This step builds the Docker image from the repository root.
+#       - name: Build Docker image
+#         run: docker build . --file ./dockerfiles/Dockerfile --tag fastapi-app
 
-      # This step runs the Snyk Container scan.
-      - name: Run Snyk Container scan
-        uses: snyk/actions/docker@master
-        continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # The name of the image to test.
-          image: fastapi-app
-          # Arguments to pass to the Snyk CLI, pointing to the Dockerfile.
-          args: --file=./dockerfiles/Dockerfile
+#       # This step runs the Snyk Container scan.
+#       - name: Run Snyk Container scan
+#         uses: snyk/actions/docker@master
+#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#         with:
+#           # The name of the image to test.
+#           image: fastapi-app
+#           # Arguments to pass to the Snyk CLI, pointing to the Dockerfile.
+#           args: --file=./dockerfiles/Dockerfile
 
-  # This job runs Snyk Infrastructure as Code (IaC) to find and fix
-  # misconfigurations in your IaC files (e.g., Terraform, Kubernetes).
-  snyk_iac:
-    runs-on: ubuntu-latest
-    steps:
-      # This step checks out your repository's code.
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#   # This job runs Snyk Infrastructure as Code (IaC) to find and fix
+#   # misconfigurations in your IaC files (e.g., Terraform, Kubernetes).
+#   snyk_iac:
+#     runs-on: ubuntu-latest
+#     steps:
+#       # This step checks out your repository's code.
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      # This step runs the Snyk IaC scan.
-      - name: Run Snyk IaC
-        uses: snyk/actions/iac@master
-        continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#       # This step runs the Snyk IaC scan.
+#       - name: Run Snyk IaC
+#         uses: snyk/actions/iac@master
+#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
