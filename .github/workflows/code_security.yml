@@ -134,7 +134,7 @@ jobs:
 
       # 3. Install the Snyk CLI
       - name: Set up Snyk CLI
-        uses: snyk/actions/setup-snyk@v2
+        uses: snyk/actions/setup@master
         with:
           version: 'latest'
         env:
