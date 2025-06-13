@@ -58,6 +58,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          command: monitor
           # The 'monitor' command takes a snapshot of your dependencies and sends it to Snyk.
           # This allows Snyk to alert you if new vulnerabilities are found in the future.
           args: --all-projects
