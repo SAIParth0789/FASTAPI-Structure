@@ -1,119 +1,5 @@
-# # This is a GitHub Actions workflow file that integrates Snyk security scans.
-# # It includes jobs for Snyk Code, Snyk Open Source, Snyk Container, and Snyk IaC.
-# name: Snyk Security Scans
-
-# # This workflow is triggered on every push to the main branch and on every pull request.
-# on:
-#   push:
-#     branches: ["main"]
-#   pull_request:
-#     branches: ["main"]
-
-# jobs:
-#   # This job runs Snyk's Static Application Security Testing (SAST) to find and fix
-#   # vulnerabilities in your application code.
-#   snyk_code:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # This step checks out your repository's code so that the workflow can access it.
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-
-#       # This step installs the Snyk CLI into the runner environment.
-#       - name: Set up Snyk CLI
-#         uses: snyk/actions/setup@master
-
-#       # This step runs the Snyk Code scan using the installed CLI.
-#       - name: Run Snyk Code analysis
-#         run: snyk code test
-#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-#         env:
-#           # Your Snyk token is required to authenticate with the Snyk API.
-#           # Store your token as a secret in your GitHub repository settings.
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-#   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
-#   # vulnerabilities in your open-source dependencies.
-#   snyk_open_source:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # This step checks out your repository's code.
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-
-#       # This step sets up a Python environment.
-#       - name: Set up Python
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: '3.11'
-
-#       # This step installs the project dependencies from your requirements.txt file.
-#       - name: Install dependencies
-#         run: pip install -r requirements.txt
-
-#       # This step runs the Snyk Open Source scan using the dedicated Python action.
-#       - name: Run Snyk Open Source
-#         uses: snyk/actions/python@master
-#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#         with:
-#           # The 'test' command provides immediate feedback in the CI log.
-#           command: test
-#           args: --all-projects --sarif-file-output=snyk-open-source.sarif
-      
-#       - name: Monitor project on Snyk
-#         uses: snyk/actions/python@master
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#         with:
-#           # The 'monitor' command populates the Snyk dashboard.
-#           command: monitor
-#           args: --all-projects
-  
-#   # This job runs Snyk Container to find and fix vulnerabilities in your Docker image.
-#   snyk_container:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # This step checks out your repository's code.
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-
-#       # This step builds the Docker image from the repository root.
-#       - name: Build Docker image
-#         run: docker build . --file ./dockerfiles/Dockerfile --tag fastapi-app
-
-#       # This step runs the Snyk Container scan.
-#       - name: Run Snyk Container scan
-#         uses: snyk/actions/docker@master
-#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#         with:
-#           # The name of the image to test.
-#           image: fastapi-app
-#           # Arguments to pass to the Snyk CLI, pointing to the Dockerfile.
-#           args: --file=./dockerfiles/Dockerfile
-
-#   # This job runs Snyk Infrastructure as Code (IaC) to find and fix
-#   # misconfigurations in your IaC files (e.g., Terraform, Kubernetes).
-#   snyk_iac:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # This step checks out your repository's code.
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-
-#       # This step runs the Snyk IaC scan.
-#       - name: Run Snyk IaC
-#         uses: snyk/actions/iac@master
-#         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-
 # This is a GitHub Actions workflow file that integrates Snyk security scans.
-# It includes jobs for Snyk Code, Snyk Open Source, Snyk Container, Snyk IaC, and OWASP ZAP DAST.
+# It includes jobs for Snyk Code, Snyk Open Source, Snyk Container, and Snyk IaC.
 name: Snyk Security Scans
 
 # This workflow is triggered on every push to the main branch and on every pull request.
@@ -139,25 +25,11 @@ jobs:
 
       # This step runs the Snyk Code scan using the installed CLI.
       - name: Run Snyk Code analysis
-        run: snyk code test --sarif-file-output=snyk-code.sarif
+        run: snyk code test
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
           # Your Snyk token is required to authenticate with the Snyk API.
           # Store your token as a secret in your GitHub repository settings.
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      
-      # This step uploads the Snyk Code scan results as a SARIF file.
-      - name: Upload Snyk Code results
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-code-report
-          path: snyk-code.sarif
-      
-      # This step monitors the code and sends the snapshot to Snyk with a specific project name.
-      - name: Monitor Snyk Code results
-        run: snyk code monitor --project-name="fastapi-app-code"
-        continue-on-error: true
-        env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   # This job runs Snyk's Software Composition Analysis (SCA) to find and fix
@@ -180,7 +52,7 @@ jobs:
         run: pip install -r requirements.txt
 
       # This step runs the Snyk Open Source scan using the dedicated Python action.
-      - name: Run Snyk Open Source test
+      - name: Run Snyk Open Source
         uses: snyk/actions/python@master
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
@@ -189,15 +61,7 @@ jobs:
           # The 'test' command provides immediate feedback in the CI log.
           command: test
           args: --all-projects --sarif-file-output=snyk-open-source.sarif
-
-      # This step uploads the Snyk Open Source scan results as a SARIF file.
-      - name: Upload Snyk Open Source results
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-open-source-report
-          path: snyk-open-source.sarif
-
-      # This step monitors the project and sends the snapshot to Snyk with a specific project name.
+      
       - name: Monitor project on Snyk
         uses: snyk/actions/python@master
         env:
@@ -205,8 +69,9 @@ jobs:
         with:
           # The 'monitor' command populates the Snyk dashboard.
           command: monitor
-          args: --all-projects --project-name="fastapi-app-dependencies"
-
+          args: --all-projects
+  
+  # This job runs Snyk Container to find and fix vulnerabilities in your Docker image.
   snyk_container:
     runs-on: ubuntu-latest
     steps:
@@ -216,7 +81,7 @@ jobs:
 
       # This step builds the Docker image from the repository root.
       - name: Build Docker image
-        run: docker build . --file ./dockerfiles/Dockerfile --tag my-fastapi-app
+        run: docker build . --file ./dockerfiles/Dockerfile --tag fastapi-app
 
       # This step runs the Snyk Container scan.
       - name: Run Snyk Container scan
@@ -226,27 +91,9 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           # The name of the image to test.
-          image: my-fastapi-app
-          # Arguments to pass to the Snyk CLI, pointing to the Dockerfile and outputting a SARIF file.
-          args: --file=./dockerfiles/Dockerfile --sarif-file-output=snyk-container.sarif
-
-      # This step uploads the Snyk Container scan results as a SARIF file.
-      - name: Upload Snyk Container results
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-container-report
-          path: snyk-container.sarif
-      
-      # This step monitors the container and sends the snapshot to Snyk with a specific project name.
-      - name: Monitor Snyk Container results
-        uses: snyk/actions/docker@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: my-fastapi-app
-          command: monitor
-          args: --file=./dockerfiles/Dockerfile --project-name="fastapi-app-container"
+          image: fastapi-app
+          # Arguments to pass to the Snyk CLI, pointing to the Dockerfile.
+          args: --file=./dockerfiles/Dockerfile
 
   # This job runs Snyk Infrastructure as Code (IaC) to find and fix
   # misconfigurations in your IaC files (e.g., Terraform, Kubernetes).
@@ -258,29 +105,10 @@ jobs:
         uses: actions/checkout@v3
 
       # This step runs the Snyk IaC scan.
-      - name: Run Snyk IaC scan
+      - name: Run Snyk IaC
         uses: snyk/actions/iac@master
         continue-on-error: true # To prevent the workflow from failing on vulnerabilities
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # Arguments to pass to the Snyk CLI, outputting a SARIF file.
-          args: --sarif-file-output=snyk-iac.sarif
 
-      # This step uploads the Snyk IaC scan results as a SARIF file.
-      - name: Upload Snyk IaC results
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-iac-report
-          path: snyk-iac.sarif
-      
-      # This step monitors the IaC files and sends the snapshot to Snyk with a specific project name.
-      - name: Monitor Snyk IaC results
-        uses: snyk/actions/iac@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: monitor
-          args: --project-name="fastapi-app-iac"
 
