@@ -131,21 +131,32 @@ jobs:
         run: |
              length=$(cat packages.sarif | jq '.runs[0].results | length')
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
-      - name: Send Nortification on MS-Teams using Webhook
+      - name: Send Notification on MS-Teams using Webhook
         if: always()
         env:
           WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
-          # build a short summary of the first few errors
-          summary=$(jq -r '.runs[0].results[:5][] | "- [" + .ruleId + "](" + .message.text + ")"' packages.sarif | sed ':a;N;$!ba;s/\n/\\n/g')
+          # compute themeColor based on RESULTS_LENGTH
+          if [ "${RESULTS_LENGTH}" != "0" ]; then
+            color="FF0000"
+          else
+            color="00FF00"
+          fi
+
+          # build a short markdown summary of up to 5 errors
+          summary=$(jq -r '.runs[0].results[:5][] |
+            "- [" + .ruleId + "] " + .message.text' packages.sarif |
+            sed ':a;N;$!ba;s/\n/\\n/g')
+
+          # assemble the Teams MessageCard
           cat <<EOF > payload.json
           {
             "@type": "MessageCard",
             "@context": "https://schema.org/extensions",
             "summary": "Snyk Scan Results",
-            "themeColor": "${{ env.RESULTS_LENGTH != '0' && echo 'FF0000' || echo '00FF00' }}",
-            "title": "Snyk Security Scan: \${RESULTS_LENGTH} issue(s) found",
-            "text": "**Issues:**\n\${summary}\n\n_For full details, view the [SARIF report](./packages.sarif)_"
+            "themeColor": "${color}",
+            "title": "Snyk Security Scan: ${RESULTS_LENGTH} issue(s) found",
+            "text": "**Issues:**\n${summary}\n\n_For full details, view the [SARIF report](./packages.sarif)_"
           }
           EOF
 
