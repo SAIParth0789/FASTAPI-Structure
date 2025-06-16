@@ -136,9 +136,18 @@ jobs:
         uses: skitionek/notify-microsoft-teams@v1.0.3
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: |
-            Snyk Scan • ${{ github.repository }}
-            — ${{ env.RESULTS_LENGTH }} issue(s)
+          title: "Snyk Scan Failed • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
+          summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
+          text: |
+            A Snyk scan has detected vulnerabilities.
+
+            **Repository:** ${{ github.repository }}
+            **Branch:** `${{ github.ref_name }}`
+            **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+
+            Please review the findings and take appropriate action.
+
+            [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
   code-security:
     runs-on: ubuntu-latest
