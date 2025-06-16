@@ -133,7 +133,8 @@ jobs:
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Microsoft Teams Notification
         if: always()
-        uses: skitionek/notify-microsoft-teams@v1.0.3
+        # uses: skitionek/notify-microsoft-teams@v1.0.3
+        uses: skitionek/notify-microsoft-teams@v1.0.9
         # uses: septblast/ms-teams-notification@v2.0.2
         # with:
         #       github-token: ${{ github.token }}
@@ -149,20 +150,32 @@ jobs:
         #                             [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         #       notification-color: 17a2b8
         #       timezone: Asia/Kolkata
+        # with:
+        #   webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+        #   title: "Snyk Scan • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
+        #   summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
+        #   text: |
+        #     A Snyk scan has detected vulnerabilities.
+
+        #     **Repository:** ${{ github.repository }}
+        #     **Branch:** `${{ github.ref_name }}`
+        #     **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+
+        #     Please review the findings and take appropriate action.
+
+        #     [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: "Snyk Scan • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
-          summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
+          # CRITICAL: This line injects the job context, resolving the error.
+          job: ${{ toJson(job) }} 
+          title: "Snyk Scan • ${{ github.repository }}"
+          summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s)"
           text: |
-            A Snyk scan has detected vulnerabilities.
-
-            **Repository:** ${{ github.repository }}
-            **Branch:** `${{ github.ref_name }}`
-            **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
-
-            Please review the findings and take appropriate action.
-
-            [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+                A Snyk scan has completed.
+                **Repository:** ${{ github.repository }}
+                **Branch:** `${{ github.ref_name }}`
+                **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+                (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
   code-security:
     runs-on: ubuntu-latest
