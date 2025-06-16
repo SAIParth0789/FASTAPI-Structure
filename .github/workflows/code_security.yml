@@ -125,7 +125,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-            commandL : code test 
+            command : code test 
             args: --sarif-file-output=snyk.sarif
       - name: Print the snyk sarif file
         run: cat snyk.sarif
