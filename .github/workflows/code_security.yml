@@ -115,7 +115,7 @@
 name: For Python using Snyk
 on: push
 jobs:
-  security:
+  package-security:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -126,7 +126,22 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
             #command : code test 
-            args: --sarif-file-output=snyk.sarif
+            args: --sarif-file-output=packages.sarif
       - name: Print the snyk sarif file
-        run: cat snyk.sarif
+        run: cat packages.sarif
+  code-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command : code test 
+          args: --sarif-file-output=snyk-code.sarif
+      - name: Print the snyk sarif file
+        run: cat snyk-code.sarif
+    
       
