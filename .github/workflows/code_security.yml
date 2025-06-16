@@ -115,6 +115,26 @@
 name: For Python using Snyk
 on: push
 jobs:
+  SAST:
+    runs-on: ubuntu-latest
+    steps:
+      # This step checks out your repository's code so that the workflow can access it.
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # This step installs the Snyk CLI into the runner environment.
+      - name: Set up Snyk CLI
+        uses: snyk/actions/setup@master
+
+      # This step runs the Snyk Code scan using the installed CLI.
+      - name: Run Snyk Code analysis
+        run: snyk code test
+        continue-on-error: true # To prevent the workflow from failing on vulnerabilities
+        env:
+          # Your Snyk token is required to authenticate with the Snyk API.
+          # Store your token as a secret in your GitHub repository settings.
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
   package-security:
     runs-on: ubuntu-latest
     steps:
