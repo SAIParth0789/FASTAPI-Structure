@@ -136,7 +136,7 @@ jobs:
         uses: skitionek/notify-microsoft-teams@v1.0.3
         with:
               github-token: ${{ github.token }}
-              ms-teams-webhook-uri: ${{ secrets..MSTEAMS_WEBHOOK_URL }}
+              ms-teams-webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
               notification-summary: Your custom notification message 
               notification-color: 17a2b8
               timezone: Asia/Kolkata
