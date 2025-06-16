@@ -151,7 +151,7 @@ jobs:
         #       timezone: Asia/Kolkata
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: "Snyk Scan Failed • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
+          title: "Snyk Scan • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
           summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
           text: |
             A Snyk scan has detected vulnerabilities.
