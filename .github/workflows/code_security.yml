@@ -128,53 +128,66 @@ jobs:
             #command : code test 
             args: --sarif-file-output=packages.sarif
       - name: Parse Snyk SARIF for Severity Breakdown
+        id: parse_snyk
         run: |
-          CRITICAL=$(jq '[.runs.results | select(.properties.severity == "critical")] | length' packages.sarif)
-          HIGH=$(jq '[.runs.results | select(.properties.severity == "high")] | length' packages.sarif)
-          MEDIUM=$(jq '[.runs.results | select(.properties.severity == "medium")] | length' packages.sarif)
-          LOW=$(jq '[.runs.results | select(.properties.severity == "low")] | length' packages.sarif)
-          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
+          # Check if the SARIF file exists and is not empty before parsing
+          if [! -s packages.sarif ]; then
+            echo "SARIF file not found or is empty. Setting counts to 0."
+            echo "CRITICAL_COUNT=0" >> $GITHUB_ENV
+            echo "HIGH_COUNT=0" >> $GITHUB_ENV
+            echo "MEDIUM_COUNT=0" >> $GITHUB_ENV
+            echo "LOW_COUNT=0" >> $GITHUB_ENV
+            echo "TOTAL_COUNT=0" >> $GITHUB_ENV
+            exit 0
+          fi
           
+          # Corrected jq paths to handle the SARIF array structure:.runs.results
+          # The '?' after results handles cases where the results array might be null or empty.
+          CRITICAL=$(jq '[.runs.results? | select(.properties.severity == "critical")] | length' packages.sarif)
+          HIGH=$(jq '[.runs.results? | select(.properties.severity == "high")] | length' packages.sarif)
+          MEDIUM=$(jq '[.runs.results? | select(.properties.severity == "medium")] | length' packages.sarif)
+          LOW=$(jq '[.runs.results? | select(.properties.severity == "low")] | length' packages.sarif)
+          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
+
           echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
           echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
           echo "MEDIUM_COUNT=$MEDIUM" >> $GITHUB_ENV
           echo "LOW_COUNT=$LOW" >> $GITHUB_ENV
           echo "TOTAL_COUNT=$TOTAL" >> $GITHUB_ENV
 
-      # Step 4: Send a rich notification to Microsoft Teams
-      # This step runs always, regardless of the job's outcome.
-      # It uses the 'overwrite' parameter to send a fully custom Adaptive Card.
+      # Step 4: Send a rich, detailed notification to Microsoft Teams
       - name: Microsoft Teams Notification
         if: always()
-        # Using the 'master' branch to ensure the latest bug fixes are included
-        uses: skitionek/notify-microsoft-teams@master
+        # This action is designed for rich, customizable cards
+        uses: toko-bifrost/ms-teams-deploy-card@master
         with:
-          # Ensure you have MSTEAMS_WEBHOOK_URL configured in your repository secrets
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          
-          # This provides the job status (Success, Failure, etc.) to the action
-          job: ${{ toJson(job) }}
-          
-          # This 'overwrite' payload defines the custom Adaptive Card
-          overwrite: |
-            {
-              "title": "Snyk Scan: ${{ env.TOTAL_COUNT > 0 && '🚨' || '✅' }} ${{ env.TOTAL_COUNT }} Vulnerabilities in ${{ github.repository }}",
-              "summary": "Snyk found ${{ env.TOTAL_COUNT }} issue(s) in branch ${{ github.ref_name }}",
-              "sections":,
-                  "markdown": true
-                }
-              ],
-              "potentialAction":
-                },
-                {
-                  "@type": "OpenUri",
-                  "name": "View Code Security Alerts",
-                  "targets": [
-                    { "os": "default", "uri": "${{ github.server_url }}/${{ github.repository }}/security/code-scanning" }
-                  ]
-                }
-              ]
-            }
+          webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URI }}
+          github-token: ${{ github.token }}
+          # The 'status' field controls the card's title and color
+          status: ${{ job.status == 'success' && env.TOTAL_COUNT == 0 && 'Succeeded: No vulnerabilities found' |
+| 'Failed: Vulnerabilities detected' }}
+          # The 'custom-facts' input allows for a detailed key-value breakdown
+          custom-facts: |
+            - name: Repository
+              value: ${{ github.repository }}
+            - name: Branch
+              value: ${{ github.ref_name }}
+            - name: Total Vulnerabilities
+              value: ${{ env.TOTAL_COUNT }}
+            - name: 🔴 Critical
+              value: ${{ env.CRITICAL_COUNT }}
+            - name: 🟠 High
+              value: ${{ env.HIGH_COUNT }}
+            - name: 🟡 Medium
+              value: ${{ env.MEDIUM_COUNT }}
+            - name: 🔵 Low
+              value: ${{ env.LOW_COUNT }}
+          # The 'custom-actions' input adds clickable buttons to the card
+          custom-actions: |
+            - text: View Workflow Run
+              url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - text: View Code Security Alerts
+              url: ${{ github.server_url }}/${{ github.repository }}/security/code-scanning
       # - name: Total Security Issues
       #   run: |
       #        length=$(cat packages.sarif | jq '.runs[0].results | length')
