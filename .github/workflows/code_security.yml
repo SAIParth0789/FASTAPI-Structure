@@ -132,7 +132,7 @@ jobs:
              length=$(cat packages.sarif | jq '.runs[0].results | length')
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Microsoft Teams Notification
-        if: always()
+        if: success()
         # uses: skitionek/notify-microsoft-teams@v1.0.3
         uses: skitionek/notify-microsoft-teams@v1.0.9
         # uses: septblast/ms-teams-notification@v2.0.2
