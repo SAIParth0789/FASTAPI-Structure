@@ -164,8 +164,7 @@ jobs:
           webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URI }}
           github-token: ${{ github.token }}
           # The 'status' field controls the card's title and color
-          status: ${{ job.status == 'success' && env.TOTAL_COUNT == 0 && 'Succeeded: No vulnerabilities found' |
-| 'Failed: Vulnerabilities detected' }}
+          status: ${{ job.status == 'success' && env.TOTAL_COUNT == 0}}
           # The 'custom-facts' input allows for a detailed key-value breakdown
           custom-facts: |
             - name: Repository
