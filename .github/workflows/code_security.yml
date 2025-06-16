@@ -138,7 +138,15 @@ jobs:
         with:
               github-token: ${{ github.token }}
               ms-teams-webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-              notification-summary: Your custom notification message 
+              notification-summary: |
+                                    A Snyk scan has detected vulnerabilities.
+                                    **Repository:** ${{ github.repository }}
+                                    **Branch:** `${{ github.ref_name }}`
+                                    **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+
+                                    Please review the findings and take appropriate action.
+
+                                    [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
               notification-color: 17a2b8
               timezone: Asia/Kolkata
           # webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
