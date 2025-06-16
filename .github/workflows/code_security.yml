@@ -127,115 +127,55 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
-      - name: Parse Snyk SARIF for Severity Breakdown
-        id: parse_snyk
+      - name: Total Security Issues
         run: |
-          # Check if the SARIF file exists and is not empty before parsing
-          if [! -s packages.sarif ]; then
-            echo "SARIF file not found or is empty. Setting counts to 0."
-            echo "CRITICAL_COUNT=0" >> $GITHUB_ENV
-            echo "HIGH_COUNT=0" >> $GITHUB_ENV
-            echo "MEDIUM_COUNT=0" >> $GITHUB_ENV
-            echo "LOW_COUNT=0" >> $GITHUB_ENV
-            echo "TOTAL_COUNT=0" >> $GITHUB_ENV
-            exit 0
-          fi
-          
-          # Corrected jq paths to handle the SARIF array structure:.runs.results
-          # The '?' after results handles cases where the results array might be null or empty.
-          CRITICAL=$(jq '[.runs.results? | select(.properties.severity == "critical")] | length' packages.sarif)
-          HIGH=$(jq '[.runs.results? | select(.properties.severity == "high")] | length' packages.sarif)
-          MEDIUM=$(jq '[.runs.results? | select(.properties.severity == "medium")] | length' packages.sarif)
-          LOW=$(jq '[.runs.results? | select(.properties.severity == "low")] | length' packages.sarif)
-          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
-
-          echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
-          echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
-          echo "MEDIUM_COUNT=$MEDIUM" >> $GITHUB_ENV
-          echo "LOW_COUNT=$LOW" >> $GITHUB_ENV
-          echo "TOTAL_COUNT=$TOTAL" >> $GITHUB_ENV
-
-      # Step 4: Send a rich, detailed notification to Microsoft Teams
+             length=$(cat packages.sarif | jq '.runs[0].results | length')
+             echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Microsoft Teams Notification
         if: always()
-        # This action is designed for rich, customizable cards
-        uses: toko-bifrost/ms-teams-deploy-card@master
+        # uses: skitionek/notify-microsoft-teams@v1.0.3
+        uses: skitionek/notify-microsoft-teams@v1.0.9
+        # uses: septblast/ms-teams-notification@v2.0.2
+        # with:
+        #       github-token: ${{ github.token }}
+        #       ms-teams-webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+        #       notification-summary: |
+        #                             A Snyk scan has detected vulnerabilities.
+        #                             **Repository:** ${{ github.repository }}
+        #                             **Branch:** `${{ github.ref_name }}`
+        #                             **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+
+        #                             Please review the findings and take appropriate action.
+
+        #                             [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        #       notification-color: 17a2b8
+        #       timezone: Asia/Kolkata
+        # with:
+        #   webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+        #   title: "Snyk Scan • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
+        #   summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
+        #   text: |
+        #     A Snyk scan has detected vulnerabilities.
+
+        #     **Repository:** ${{ github.repository }}
+        #     **Branch:** `${{ github.ref_name }}`
+        #     **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+
+        #     Please review the findings and take appropriate action.
+
+        #     [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         with:
-          webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URI }}
-          github-token: ${{ github.token }}
-          # The 'status' field controls the card's title and color
-          status: ${{ job.status == 'success' && env.TOTAL_COUNT == 0}}
-          # The 'custom-facts' input allows for a detailed key-value breakdown
-          custom-facts: |
-            - name: Repository
-              value: ${{ github.repository }}
-            - name: Branch
-              value: ${{ github.ref_name }}
-            - name: Total Vulnerabilities
-              value: ${{ env.TOTAL_COUNT }}
-            - name: 🔴 Critical
-              value: ${{ env.CRITICAL_COUNT }}
-            - name: 🟠 High
-              value: ${{ env.HIGH_COUNT }}
-            - name: 🟡 Medium
-              value: ${{ env.MEDIUM_COUNT }}
-            - name: 🔵 Low
-              value: ${{ env.LOW_COUNT }}
-          # The 'custom-actions' input adds clickable buttons to the card
-          custom-actions: |
-            - text: View Workflow Run
-              url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            - text: View Code Security Alerts
-              url: ${{ github.server_url }}/${{ github.repository }}/security/code-scanning
-      # - name: Total Security Issues
-      #   run: |
-      #        length=$(cat packages.sarif | jq '.runs[0].results | length')
-      #        echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
-      # - name: Microsoft Teams Notification
-      #   if: always()
-      #   # uses: skitionek/notify-microsoft-teams@v1.0.3
-      #   uses: skitionek/notify-microsoft-teams@v1.0.9
-      #   # uses: septblast/ms-teams-notification@v2.0.2
-      #   # with:
-      #   #       github-token: ${{ github.token }}
-      #   #       ms-teams-webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-      #   #       notification-summary: |
-      #   #                             A Snyk scan has detected vulnerabilities.
-      #   #                             **Repository:** ${{ github.repository }}
-      #   #                             **Branch:** `${{ github.ref_name }}`
-      #   #                             **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
-
-      #   #                             Please review the findings and take appropriate action.
-
-      #   #                             [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-      #   #       notification-color: 17a2b8
-      #   #       timezone: Asia/Kolkata
-      #   # with:
-      #   #   webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-      #   #   title: "Snyk Scan • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
-      #   #   summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
-      #   #   text: |
-      #   #     A Snyk scan has detected vulnerabilities.
-
-      #   #     **Repository:** ${{ github.repository }}
-      #   #     **Branch:** `${{ github.ref_name }}`
-      #   #     **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
-
-      #   #     Please review the findings and take appropriate action.
-
-      #   #     [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-      #   with:
-      #     webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-      #     # CRITICAL: This line injects the job context, resolving the error.
-      #     job: ${{ toJson(job) }} 
-      #     title: "Snyk Scan • ${{ github.repository }}"
-      #     summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s)"
-      #     text: |
-      #           A Snyk scan has completed.
-      #           **Repository:** ${{ github.repository }}
-      #           **Branch:** `${{ github.ref_name }}`
-      #           **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
-      #           (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          # CRITICAL: This line injects the job context, resolving the error.
+          job: ${{ toJson(job) }} 
+          title: "Snyk Scan • ${{ github.repository }}"
+          summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s)"
+          text: |
+                A Snyk scan has completed.
+                **Repository:** ${{ github.repository }}
+                **Branch:** `${{ github.ref_name }}`
+                **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+                (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
   code-security:
     runs-on: ubuntu-latest
