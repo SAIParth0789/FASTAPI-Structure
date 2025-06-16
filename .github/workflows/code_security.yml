@@ -127,6 +127,27 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
+      # 3) Count the number of results
+      - name: Total Security Issues
+        id: count
+        run: |
+          length=$(jq '.runs[0].results | length' packages.sarif)
+          # No spaces around '=' when setting an env var
+          echo "RESULTS_LENGTH=$length" >> $GITHUB_ENV
+          # Also set an output in case you prefer `steps.count.outputs.length`
+          echo "::set-output name=length::$length"
+
+      # 4) Send a minimal Teams card with just a title
+      - name: Microsoft Teams Notification
+        if: always()
+        uses: skitionek/notify-microsoft-teams@v1.0.3   # pin to v1.0.3 to avoid master’s broken commits
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+
+          # Only override the title. Do NOT pass `needs`, `job` or `steps`.
+          title: |
+            Snyk Scan • ${{ github.repository }}
+            — ${{ env.RESULTS_LENGTH }} issue(s)
             
   code-security:
     runs-on: ubuntu-latest
