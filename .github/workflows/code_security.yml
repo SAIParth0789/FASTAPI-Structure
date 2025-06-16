@@ -131,38 +131,18 @@ jobs:
         run: |
              length=$(cat packages.sarif | jq '.runs[0].results | length')
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
-      - name: Send Notification on MS-Teams using Webhook
+      - name: Microsoft Teams Notification
         if: always()
-        env:
-          WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-        run: |
-          # compute themeColor based on RESULTS_LENGTH
-          if [ "${RESULTS_LENGTH}" != "0" ]; then
-            color="FF0000"
-          else
-            color="00FF00"
-          fi
-
-          # build a short markdown summary of up to 5 errors
-          summary=$(jq -r '.runs[0].results[:5][] |
-            "- [" + .ruleId + "] " + .message.text' packages.sarif |
-            sed ':a;N;$!ba;s/\n/\\n/g')
-
-          # assemble the Teams MessageCard
-          cat <<EOF > payload.json
-          {
-            "@type": "MessageCard",
-            "@context": "https://schema.org/extensions",
-            "summary": "Snyk Scan Results",
-            "themeColor": "${color}",
-            "title": "Snyk Security Scan: ${RESULTS_LENGTH} issue(s) found",
-            "text": "**Issues:**\n${summary}\n\n_For full details, view the [SARIF report](./packages.sarif)_"
-          }
-          EOF
-
-          curl -H "Content-Type: application/json" \
-               -d @payload.json \
-               "$WEBHOOK_URL"
+        uses: skitionek/notify-microsoft-teams@master
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          needs: ${{ toJson(needs) }}
+          job: ${{ toJson(job) }}
+          steps: ${{ toJson(steps) }}
+          title: |
+            Snyk Scan • ${{ github.repository }}
+            — ${{ steps.count.outputs.RESULTS_LENGTH }} issue(s)
+            
   code-security:
     runs-on: ubuntu-latest
     steps:
