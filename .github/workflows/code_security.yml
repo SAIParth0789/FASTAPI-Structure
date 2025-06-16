@@ -138,6 +138,7 @@ jobs:
         with:
           payload: |
                {
+                 "title": "TEST TITLE"
                  "text": "TEST"
                }
         env:
