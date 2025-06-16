@@ -134,7 +134,7 @@ jobs:
             args: --sarif-file-output=packages.sarif
       - name: Count total number of vulnerabilities
         run: |
-          RESULTS_LENGTH=$(jq '.runs[0].results | length' snyk.sarif)
+          RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
           
