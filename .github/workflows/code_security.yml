@@ -132,6 +132,16 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
+      - name: Send notification on Slack using Webhooks
+        uses: slackapi/slack-github-action@v1.24.0
+        if: always()
+        with:
+          payload: |
+               {
+                 "text": "TEST"
+               }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
             
   code-security:
     runs-on: ubuntu-latest
