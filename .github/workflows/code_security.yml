@@ -135,19 +135,24 @@ jobs:
         if: always()
         uses: skitionek/notify-microsoft-teams@v1.0.3
         with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: "Snyk Scan Failed • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
-          summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
-          text: |
-            A Snyk scan has detected vulnerabilities.
+              github-token: ${{ github.token }}
+              ms-teams-webhook-uri: ${{ secrets..MSTEAMS_WEBHOOK_URL }}
+              notification-summary: Your custom notification message 
+              notification-color: 17a2b8
+              timezone: Asia/Kolkata
+          # webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          # title: "Snyk Scan Failed • ${{ github.repository }} — ${{ env.RESULTS_LENGTH }} issue(s)"
+          # summary: "Snyk found ${{ env.RESULTS_LENGTH }} issue(s) in ${{ github.repository }}"
+          # text: |
+          #   A Snyk scan has detected vulnerabilities.
 
-            **Repository:** ${{ github.repository }}
-            **Branch:** `${{ github.ref_name }}`
-            **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
+          #   **Repository:** ${{ github.repository }}
+          #   **Branch:** `${{ github.ref_name }}`
+          #   **Total Vulnerabilities Found:** **${{ env.RESULTS_LENGTH }}**
 
-            Please review the findings and take appropriate action.
+          #   Please review the findings and take appropriate action.
 
-            [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          #   [**View Full Workflow Run**](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
   code-security:
     runs-on: ubuntu-latest
