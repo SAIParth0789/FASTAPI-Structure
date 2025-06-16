@@ -133,18 +133,25 @@ jobs:
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Send Nortification on MS-Teams using Webhook
         if: always()
-        uses: skitionek/notify-microsoft-teams@master
-        with:
-          webhook_url: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
-          title: "Snyk Scan For Requirements"
-          summary: "The Snyk scan detected vulnerabilities."
-          text: |
-            **Repository:** ${{ github.repository }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
-            **Total Vulnerabilities Found:** ${{ env.RESULTS_LENGTH }}
-            [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          theme_color: "FF0000"
+        env:
+          WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          # build a short summary of the first few errors
+          summary=$(jq -r '.runs[0].results[:5][] | "- [" + .ruleId + "](" + .message.text + ")"' packages.sarif | sed ':a;N;$!ba;s/\n/\\n/g')
+          cat <<EOF > payload.json
+          {
+            "@type": "MessageCard",
+            "@context": "https://schema.org/extensions",
+            "summary": "Snyk Scan Results",
+            "themeColor": "${{ env.RESULTS_LENGTH != '0' && echo 'FF0000' || echo '00FF00' }}",
+            "title": "Snyk Security Scan: \${RESULTS_LENGTH} issue(s) found",
+            "text": "**Issues:**\n\${summary}\n\n_For full details, view the [SARIF report](./packages.sarif)_"
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @payload.json \
+               "$WEBHOOK_URL"
   code-security:
     runs-on: ubuntu-latest
     steps:
