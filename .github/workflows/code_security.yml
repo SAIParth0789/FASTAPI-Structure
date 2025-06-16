@@ -133,7 +133,7 @@ jobs:
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Send Nortification on MS-Teams using Webhook
         if: always()
-        uses: ato-team/actions-teams-notify@v1
+        uses: skitionek/notify-microsoft-teams@master
         with:
           webhook_url: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
           title: "Snyk Scan For Requirements"
