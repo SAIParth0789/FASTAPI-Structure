@@ -136,9 +136,6 @@ jobs:
         uses: skitionek/notify-microsoft-teams@master
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          needs: ${{ toJson(needs) }}
-          job: ${{ toJson(job) }}
-          steps: ${{ toJson(steps) }}
           title: |
             Snyk Scan • ${{ github.repository }}
             — ${{ steps.count.outputs.RESULTS_LENGTH }} issue(s)
