@@ -131,6 +131,20 @@ jobs:
         run: |
              length=$(cat packages.sarif | jq '.runs[0].results | length')
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
+      - name: Send Nortification on MS-Teams using Webhook
+        if: always()
+        uses: ato-team/actions-teams-notify@v1
+        with:
+          webhook_url: ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
+          title: "Snyk Scan For Requirements"
+          summary: "The Snyk scan detected vulnerabilities."
+          text: |
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            **Total Vulnerabilities Found:** ${{ env.RESULTS_LENGTH }}
+            [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          theme_color: "FF0000"
   code-security:
     runs-on: ubuntu-latest
     steps:
