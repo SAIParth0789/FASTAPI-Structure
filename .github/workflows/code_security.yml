@@ -133,7 +133,7 @@ jobs:
              echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
       - name: Microsoft Teams Notification
         if: always()
-        uses: skitionek/notify-microsoft-teams@master
+        uses: skitionek/notify-microsoft-teams@v1.0.3
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
           title: |
