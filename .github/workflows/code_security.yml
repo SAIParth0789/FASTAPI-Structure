@@ -138,7 +138,7 @@ jobs:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
           title: |
             Snyk Scan • ${{ github.repository }}
-            — ${{ steps.count.outputs.RESULTS_LENGTH }} issue(s)
+            — ${{ env.RESULTS_LENGTH }} issue(s)
             
   code-security:
     runs-on: ubuntu-latest
