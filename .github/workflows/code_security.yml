@@ -127,8 +127,10 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
-      - name: Print the snyk sarif file
-        run: cat packages.sarif
+      - name: Total Security Issues
+        run: |
+             length=$(cat packages.sarif | jq '.runs[0].results | length')
+             echo "RESULTS_LENGTH = $length" >> $GITHUB_ENV
   code-security:
     runs-on: ubuntu-latest
     steps:
@@ -142,6 +144,6 @@ jobs:
           command : code test 
           args: --sarif-file-output=snyk-code.sarif
       - name: Print the snyk sarif file
-        run: cat snyk-code.sarif
+        run: cat snyk-code.sarif 
     
       
