@@ -137,6 +137,18 @@ jobs:
           RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
+
+      - name: Notify Microsoft Teams
+        if: always()
+        uses: skitionek/notify-microsoft-teams@master
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          title: |
+            Snyk Scan • ${{ github.repository }}
+          message: |
+            - **Status**: ${{ job.status }}
+            - **Number of vulnerabilities**: ${{ env.RESULTS_LENGTH }}
+            - **Details**: [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
       
           
       # - name: Pass_or_Fail_the_job
