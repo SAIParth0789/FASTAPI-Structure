@@ -158,7 +158,7 @@ jobs:
                         "type": "TextBlock",
                         "size": "Large",
                         "weight": "Bolder",
-                        "text": "Snyk Scan Report"
+                        "text": "Snyk Scan Package Security Report"
                       },
                       {
                         "type": "TextBlock",
