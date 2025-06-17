@@ -143,12 +143,10 @@ jobs:
         uses: skitionek/notify-microsoft-teams@master
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: |
-            Snyk Scan • ${{ github.repository }}
-          message: |
-            - **Status**: ${{ job.status }}
-            - **Number of vulnerabilities**: ${{ env.RESULTS_LENGTH }}
-            - **Details**: [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          title: Snyk Scan • ${{ github.repository }}
+          job: ${{ toJson(job) }}
+          steps: ${{ toJson(steps) }}
+          needs: ${{ toJson(needs) }}
       
           
       # - name: Pass_or_Fail_the_job
