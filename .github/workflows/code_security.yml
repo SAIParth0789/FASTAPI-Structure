@@ -132,14 +132,17 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
-      - name: Count total number of vulnerabilities
+      - name: Extract Snyk Errors and Fixes
+        id: snyk-summary
         run: |
-          RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
-          echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
-          echo $RESULTS_LENGTH
+          ERRORS=$(jq -r '
+            .runs[0].results[] | 
+            "- **" + .ruleId + "**: " + .message.text + 
+            (if .fixes then "\n  Fix: " + (.fixes[0].description // "See details") else "" end)
+          ' packages.sarif | head -10 | tr '\n' '~')
+          echo "ERRORS=${ERRORS}" >> $GITHUB_ENV
 
       - name: Notify Microsoft Teams
-        if: always()
         uses: skitionek/notify-microsoft-teams@master
         continue-on-error: true
         with:
@@ -158,7 +161,7 @@ jobs:
                         "type": "TextBlock",
                         "size": "Large",
                         "weight": "Bolder",
-                        "text": "Snyk Scan Package Security Report"
+                        "text": "Snyk Scan Report"
                       },
                       {
                         "type": "TextBlock",
@@ -166,11 +169,12 @@ jobs:
                       },
                       {
                         "type": "TextBlock",
-                        "text": "**Status**: ${{ job.status }}"
+                        "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
                       },
                       {
                         "type": "TextBlock",
-                        "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
+                        "wrap": true,
+                        "text": "${{ env.ERRORS }}"
                       },
                       {
                         "type": "TextBlock",
@@ -181,6 +185,55 @@ jobs:
                 }
               ]
             }
+      # - name: Count total number of vulnerabilities
+      #   run: |
+      #     RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
+      #     echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
+      #     echo $RESULTS_LENGTH
+
+      # - name: Notify Microsoft Teams
+      #   if: always()
+      #   uses: skitionek/notify-microsoft-teams@master
+      #   continue-on-error: true
+      #   with:
+      #     webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+      #     raw: |
+      #       {
+      #         "type": "message",
+      #         "attachments": [
+      #           {
+      #             "contentType": "application/vnd.microsoft.card.adaptive",
+      #             "content": {
+      #               "type": "AdaptiveCard",
+      #               "version": "1.4",
+      #               "body": [
+      #                 {
+      #                   "type": "TextBlock",
+      #                   "size": "Large",
+      #                   "weight": "Bolder",
+      #                   "text": "Snyk Scan Package Security Report"
+      #                 },
+      #                 {
+      #                   "type": "TextBlock",
+      #                   "text": "**Repo**: ${{ github.repository }}"
+      #                 },
+      #                 {
+      #                   "type": "TextBlock",
+      #                   "text": "**Status**: ${{ job.status }}"
+      #                 },
+      #                 {
+      #                   "type": "TextBlock",
+      #                   "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
+      #                 },
+      #                 {
+      #                   "type": "TextBlock",
+      #                   "text": "[View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+      #                 }
+      #               ]
+      #             }
+      #           }
+      #         ]
+      #       }
       
           
       # - name: Pass_or_Fail_the_job
