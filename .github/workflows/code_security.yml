@@ -141,6 +141,7 @@ jobs:
       - name: Notify Microsoft Teams
         if: always()
         uses: skitionek/notify-microsoft-teams@master
+        continue-on-error: true
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
           raw: |
