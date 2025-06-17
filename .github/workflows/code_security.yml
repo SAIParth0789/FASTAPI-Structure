@@ -148,6 +148,38 @@ jobs:
           steps: ${{ toJson(steps) }}
           dry_run: True
           
+  with_raw:
+    name: One with raw data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Microsoft Teams Notification
+        uses: skitionek/notify-microsoft-teams@master
+        if: always()
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          raw: >-
+            {
+                "type": "message",
+                "attachments":
+                [
+                    {
+                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "content":
+                        {
+                            "type": "AdaptiveCard",
+                            "body":
+                            [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "Test title text"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }  
+          
       # - name: Pass_or_Fail_the_job
       #   run: |
       #       if [ "$RESULTS_LENGTH" != 0 ]; then
