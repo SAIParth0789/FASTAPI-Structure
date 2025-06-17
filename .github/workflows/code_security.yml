@@ -138,87 +138,6 @@ jobs:
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
 
-      - name: Microsoft Teams Notification
-        uses: skitionek/notify-microsoft-teams@master
-        if: always()
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          needs: ${{ toJson(needs) }}
-          job: ${{ toJson(job) }}
-          steps: ${{ toJson(steps) }}
-          dry_run: True
-          
-  with_emails:
-    name: One with emails
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: MSTeams Notification
-        uses: ./
-        if: always()
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: "`Overwrote title in ${workflow_link}`"
-          msteams_emails: "mm@mm.mm, yy@yy.yy, rr@rr.rr"
-          job: ${{ toJson(job) }}
-          steps: ${{ toJson(steps) }}
-          dry_run: ${{ !github.event.action == 'release' }}
-          
-  without_optional_params:
-    name: One with little info
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Microsoft Teams Notification
-        uses: skitionek/notify-microsoft-teams@master
-        if: always()
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-
-  with_overwrite:
-    name: One with overwrite
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Microsoft Teams Notification
-        uses: skitionek/notify-microsoft-teams@master
-        if: always()
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          title: "`Overwrote title in ${workflow_link}`"
-
-  with_raw:
-    name: One with raw data
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Microsoft Teams Notification
-        uses: skitionek/notify-microsoft-teams@master
-        if: always()
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-          raw: >-
-            {
-                "type": "message",
-                "attachments":
-                [
-                    {
-                        "contentType": "application/vnd.microsoft.card.adaptive",
-                        "content":
-                        {
-                            "type": "AdaptiveCard",
-                            "body":
-                            [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Test title text"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-
   if_failure:
     name: Only if failure
     runs-on: ubuntu-latest
@@ -226,7 +145,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Microsoft Teams Notification
         uses: skitionek/notify-microsoft-teams@master
-        if: success()
+        if: if_failure()
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}  
           
