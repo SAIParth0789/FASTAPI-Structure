@@ -132,17 +132,15 @@ jobs:
         with:
             #command : code test 
             args: --sarif-file-output=packages.sarif
-      - name: Extract Snyk Errors and Fixes
-        id: snyk-summary
+      
+      - name: Count total number of vulnerabilities
         run: |
-          ERRORS=$(jq -r '
-            .runs[0].results[] | 
-            "- **" + .ruleId + "**: " + .message.text + 
-            (if .fixes then "\n  Fix: " + (.fixes[0].description // "See details") else "" end)
-          ' packages.sarif | head -10 | tr '\n' '~')
-          echo "ERRORS=${ERRORS}" >> $GITHUB_ENV
+          RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
+          echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
+          echo $RESULTS_LENGTH
 
       - name: Notify Microsoft Teams
+        if: always()
         uses: skitionek/notify-microsoft-teams@master
         continue-on-error: true
         with:
@@ -161,7 +159,7 @@ jobs:
                         "type": "TextBlock",
                         "size": "Large",
                         "weight": "Bolder",
-                        "text": "Snyk Scan Report"
+                        "text": "Snyk Scan Package Security Report"
                       },
                       {
                         "type": "TextBlock",
@@ -169,12 +167,11 @@ jobs:
                       },
                       {
                         "type": "TextBlock",
-                        "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
+                        "text": "**Status**: ${{ job.status }}"
                       },
                       {
                         "type": "TextBlock",
-                        "wrap": true,
-                        "text": "${{ env.ERRORS }}"
+                        "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
                       },
                       {
                         "type": "TextBlock",
@@ -185,76 +182,6 @@ jobs:
                 }
               ]
             }
-      # - name: Count total number of vulnerabilities
-      #   run: |
-      #     RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
-      #     echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
-      #     echo $RESULTS_LENGTH
-
-      # - name: Notify Microsoft Teams
-      #   if: always()
-      #   uses: skitionek/notify-microsoft-teams@master
-      #   continue-on-error: true
-      #   with:
-      #     webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
-      #     raw: |
-      #       {
-      #         "type": "message",
-      #         "attachments": [
-      #           {
-      #             "contentType": "application/vnd.microsoft.card.adaptive",
-      #             "content": {
-      #               "type": "AdaptiveCard",
-      #               "version": "1.4",
-      #               "body": [
-      #                 {
-      #                   "type": "TextBlock",
-      #                   "size": "Large",
-      #                   "weight": "Bolder",
-      #                   "text": "Snyk Scan Package Security Report"
-      #                 },
-      #                 {
-      #                   "type": "TextBlock",
-      #                   "text": "**Repo**: ${{ github.repository }}"
-      #                 },
-      #                 {
-      #                   "type": "TextBlock",
-      #                   "text": "**Status**: ${{ job.status }}"
-      #                 },
-      #                 {
-      #                   "type": "TextBlock",
-      #                   "text": "**Vulnerabilities**: ${{ env.RESULTS_LENGTH }}"
-      #                 },
-      #                 {
-      #                   "type": "TextBlock",
-      #                   "text": "[View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-      #                 }
-      #               ]
-      #             }
-      #           }
-      #         ]
-      #       }
-      
-          
-      # - name: Pass_or_Fail_the_job
-      #   run: |
-      #       if [ "$RESULTS_LENGTH" != 0 ]; then
-      #           echo "Job Failed"
-      #           exit 1
-      #       else
-      #           echo "Pass"
-      #       fi
-      
-      # - name: Send notification on Slack using Webhooks
-      #   uses: slackapi/slack-github-action@v1.24.0
-      #   if: always()
-      #   with:
-      #     payload: |
-      #          {
-      #            "text": "*The Snyk scan result for repo is : ${{ job.status }}* \n *Number of vulnerabilities : ${{ env.RESULTS_LENGTH }}* \n *Detail*: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      #          }
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
             
   code-security:
     runs-on: ubuntu-latest
