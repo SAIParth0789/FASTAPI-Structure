@@ -137,7 +137,7 @@ jobs:
           RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
-
+          
   if_failure:
     name: Only if failure
     runs-on: ubuntu-latest
