@@ -138,6 +138,16 @@ jobs:
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
           
+      - name: Microsoft Teams Notification
+        uses: skitionek/notify-microsoft-teams@master
+        if: always()
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
+          needs: ${{ toJson(needs) }}
+          job: ${{ toJson(job) }}
+          steps: ${{ toJson(steps) }}
+          dry_run: True
+          
   if_failure:
     name: Only if failure
     runs-on: ubuntu-latest
