@@ -12,7 +12,7 @@ def get_config():
         "db_connection_string": "mongodb+srv://user_test:MyTestPassword123@cluster-test.mongodb.net/test?retryWrites=true"
     }
 
-    print("Using hardcoded API key and secret for connection.")
+    print("Using hardcoded API key and secret for connection!!")
     return json.dumps(config)
 
 if __name__ == "__main__":
