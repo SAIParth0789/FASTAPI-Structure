@@ -137,26 +137,36 @@ jobs:
           RESULTS_LENGTH=$(jq '.runs[0].results | length' packages.sarif)
           echo "RESULTS_LENGTH=$RESULTS_LENGTH" >> $GITHUB_ENV
           echo $RESULTS_LENGTH
-          
-      - name: Pass_or_Fail_the_job
-        run: |
-            if [ "$RESULTS_LENGTH" != 0 ]; then
-                echo "Job Failed"
-                exit 1
-            else
-                echo "Pass"
-            fi
-      
-      - name: Send notification on Slack using Webhooks
-        uses: slackapi/slack-github-action@v1.24.0
+
+      - name: Microsoft Teams Notification
+        uses: skitionek/notify-microsoft-teams@master
         if: always()
         with:
-          payload: |
-               {
-                 "text": "*The Snyk scan result for repo is : ${{ job.status }}* \n *Number of vulnerabilities : ${{ env.RESULTS_LENGTH }}* \n *Detail*: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-               }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
+          needs: ${{ toJson(needs) }}
+          job: ${{ toJson(job) }}
+          steps: ${{ toJson(steps) }}
+          dry_run: True
+          
+      # - name: Pass_or_Fail_the_job
+      #   run: |
+      #       if [ "$RESULTS_LENGTH" != 0 ]; then
+      #           echo "Job Failed"
+      #           exit 1
+      #       else
+      #           echo "Pass"
+      #       fi
+      
+      # - name: Send notification on Slack using Webhooks
+      #   uses: slackapi/slack-github-action@v1.24.0
+      #   if: always()
+      #   with:
+      #     payload: |
+      #          {
+      #            "text": "*The Snyk scan result for repo is : ${{ job.status }}* \n *Number of vulnerabilities : ${{ env.RESULTS_LENGTH }}* \n *Detail*: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      #          }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK_URL }}
             
   code-security:
     runs-on: ubuntu-latest
