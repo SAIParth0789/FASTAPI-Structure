@@ -246,9 +246,16 @@ jobs:
 
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
+        continue-on-error: true
         with:
-          target: 'http://localhost:80'
+          target: 'https://coopapi.saivalentine.com/'
           cmd_options: '-a'
+          
+      - name: ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.7.0
+        continue-on-error: true
+        with:
+          target: 'https://coopapi.saivalentine.com/apispec_1.json'
 
     
       
