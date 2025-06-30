@@ -247,7 +247,7 @@ jobs:
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
-          target: 'http://testphp.vulnweb.com/'
+          target: 'https://coopapi.saivalentine.com/'
           cmd_options: '-a'
 
     
