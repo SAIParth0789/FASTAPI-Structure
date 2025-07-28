@@ -18,3 +18,4 @@ mysql-connector-python==8.3.0
 boto3
 alembic
 cryptography
+starlette>=0.47.2 # not directly required, pinned by Snyk to avoid a vulnerability
